@@ -57,6 +57,7 @@ endif()
 if((DEFINED CMAKE_BUILD_TYPE AND CMAKE_BUILD_TYPE STREQUAL "Debug") OR (DEFINED BUILD_TESTS AND BUILD_TESTS))
 	add_executable(tests
 		src/test/main.cpp
+		src/test/scope.cpp
 	)
 	target_link_libraries(tests asiopq)
 	#	Catch triggers -Wexit-time-destructors like crazy
