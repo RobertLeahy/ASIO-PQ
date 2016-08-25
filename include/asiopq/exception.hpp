@@ -57,4 +57,19 @@ namespace asiopq {
 	};
 
 
+	/**
+	 *	Indicates that an \ref operation was aborted.
+	 */
+	class aborted : public error {
+
+
+		public:
+
+
+			aborted ();
+
+
+	};
+
+
 }

@@ -24,4 +24,7 @@ namespace asiopq {
 	connection_error::connection_error (native_handle_type handle) : error(get_error_message(PQerrorMessage(handle))) {	}
 
 
+	aborted::aborted () : error("Operation aborted") {	}
+
+
 }
