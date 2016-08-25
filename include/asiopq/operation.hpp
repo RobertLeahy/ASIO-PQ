@@ -98,7 +98,12 @@ namespace asiopq {
 				 *	The operation can only continue once the underlying libpq
 				 *	socket may be written without blocking.
 				 */
-				write
+				write,
+				/**
+				 *	The operation can only continue once the underlying libpq
+				 *	socket may be written or read without blocking.
+				 */
+				read_write
 
 			};
 
