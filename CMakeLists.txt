@@ -47,6 +47,7 @@ endif()
 configure_file(src/configure.hpp.in include/asiopq/configure.hpp)
 
 add_library(asiopq SHARED
+	src/operation.cpp
 )
 target_link_libraries(asiopq pq boost_system)
 if(USE_BOOST_FUTURE)
