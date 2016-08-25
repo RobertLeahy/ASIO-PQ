@@ -72,4 +72,41 @@ namespace asiopq {
 	};
 
 
+	/**
+	 *	Indicates that an \ref operation took longer than
+	 *	allowed.
+	 */
+	class timed_out : public error {
+
+
+		private:
+
+
+			operation::timeout_type::value_type timeout_;
+
+
+		public:
+
+
+			/**
+			 *	Creates a new timed_out object.
+			 *
+			 *	\param [in] timeout
+			 *		The duration of the timeout which elapsed.
+			 */
+			explicit timed_out (operation::timeout_type::value_type timeout);
+
+
+			/**
+			 *	Retrieves the duration of the elapsed timeout.
+			 *
+			 *	\return
+			 *		A duration.
+			 */
+			operation::timeout_type::value_type timeout () const noexcept;
+
+
+	};
+
+
 }
