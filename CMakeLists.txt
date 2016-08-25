@@ -47,11 +47,15 @@ endif()
 configure_file(src/configure.hpp.in include/asiopq/configure.hpp)
 
 add_library(asiopq SHARED
+	src/exception.cpp
 	src/operation.cpp
 )
 target_link_libraries(asiopq pq boost_system)
 if(USE_BOOST_FUTURE)
 	target_link_libraries(asiopq boost_thread)
+endif()
+if(WIN32)
+	target_link_libraries(asiopq ws2_32)
 endif()
 
 if((DEFINED CMAKE_BUILD_TYPE AND CMAKE_BUILD_TYPE STREQUAL "Debug") OR (DEFINED BUILD_TESTS AND BUILD_TESTS))
