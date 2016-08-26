@@ -49,18 +49,24 @@ namespace asiopq {
 					using mutex_type=std::mutex;
 					mutable std::mutex m_;
 					bool stop_;
+					connection * self_;
 
 
 				public:
 
 
-					control ();
+					asio::steady_timer timer;
+
+
+					control (connection &, asio::io_service &);
 
 
 					using guard_type=std::unique_lock<mutex_type>;
 					guard_type lock () const noexcept;
 					void stop () noexcept;
 					explicit operator bool () const noexcept;
+					void move (connection &) noexcept;
+					connection & self () const noexcept;
 
 
 			};
@@ -74,7 +80,6 @@ namespace asiopq {
 			std::shared_ptr<control> control_;
 			bool read_;
 			bool write_;
-			asio::steady_timer timer_;
 
 
 			void update_socket ();
@@ -116,10 +121,6 @@ namespace asiopq {
 			/**
 			 *	Constructs a connection object by moving an existing
 			 *	connection object.
-			 *
-			 *	Attempting to move a connection object which has pending
-			 *	\ref operation objects associated with it will terminate
-			 *	the program.
 			 *
 			 *	After this constructor completes the only thing which may
 			 *	be safely done with \em rhs is to allow its lifetime

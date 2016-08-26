@@ -25,7 +25,7 @@
 namespace asiopq {
 
 
-	connection::control::control () : stop_(false) {	}
+	connection::control::control (connection & self, asio::io_service & ios) : stop_(false), self_(&self), timer(ios) {	}
 
 
 	connection::control::guard_type connection::control::lock () const noexcept {
@@ -38,6 +38,7 @@ namespace asiopq {
 	void connection::control::stop () noexcept {
 
 		stop_=true;
+		timer.cancel();
 
 	}
 
@@ -45,6 +46,20 @@ namespace asiopq {
 	connection::control::operator bool () const noexcept {
 
 		return !stop_;
+
+	}
+
+
+	void connection::control::move (connection & self) noexcept {
+
+		self_=&self;
+
+	}
+
+
+	connection & connection::control::self () const noexcept {
+
+		return *self_;
 
 	}
 
@@ -116,9 +131,10 @@ namespace asiopq {
 
 			auto l=control->lock();
 			if (!*control) return;
-			if (op!=this->op_) return;
+			auto & self=control->self();
+			if (op!=self.op_) return;
 
-			return std::forward<F>(functor)(std::forward<decltype(args)>(args)...);
+			return std::forward<F>(functor)(self,std::forward<decltype(args)>(args)...);
 
 		};
 
@@ -128,7 +144,7 @@ namespace asiopq {
 	void connection::next () {
 
 		socket_.cancel();
-		timer_.cancel();
+		control_->timer.cancel();
 		read_=false;
 		write_=false;
 		op_=operation_type{};
@@ -173,11 +189,11 @@ namespace asiopq {
 			if (ms) {
 
 				auto duration=std::chrono::duration_cast<asio::steady_timer::duration>(*ms);
-				timer_.expires_from_now(duration);
-				timer_.async_wait(wrap([&,ms=*ms] (const auto &) {
+				control_->timer.expires_from_now(duration);
+				control_->timer.async_wait(wrap([&,ms=*ms] (auto & self, const auto &) {
 					
-					this->op_->complete(std::make_exception_ptr(timed_out(ms)));
-					this->next();
+					self.op_->complete(std::make_exception_ptr(timed_out(ms)));
+					self.next();
 				
 				}));
 
@@ -206,10 +222,10 @@ namespace asiopq {
 				//	There's a read pending, don't need to dispatch
 				//	another
 				if (read_) break;
-				socket_.async_read_some(asio::null_buffers{},wrap([&] (const auto &, auto) {
+				socket_.async_read_some(asio::null_buffers{},wrap([&] (auto & self, const auto &, auto) {
 
-					this->read_=false;
-					this->perform(operation::socket_status::readable);
+					self.read_=false;
+					self.perform(operation::socket_status::readable);
 
 				}));
 				read_=true;
@@ -226,10 +242,10 @@ namespace asiopq {
 				//	There's a write pending, don't need to dispatch
 				//	another
 				if (write_) break;
-				socket_.async_write_some(asio::null_buffers{},wrap([&] (const auto &, auto) {
+				socket_.async_write_some(asio::null_buffers{},wrap([&] (auto & self, const auto &, auto) {
 
-					this->write_=false;
-					this->perform(operation::socket_status::writable);
+					self.write_=false;
+					self.perform(operation::socket_status::writable);
 
 				}));
 				write_=true;
@@ -272,10 +288,9 @@ namespace asiopq {
 		:	handle_(handle),
 			ios_(ios),
 			socket_(ios),
-			control_(std::make_shared<control>()),
+			control_(std::make_shared<control>(*this,ios)),
 			read_(false),
-			write_(false),
-			timer_(ios)
+			write_(false)
 	{
 
 		update_socket();
@@ -290,20 +305,30 @@ namespace asiopq {
 			ios_(rhs.ios_),
 			socket_(ios_),
 			read_(rhs.read_),
-			write_(rhs.write_),
-			timer_(rhs.ios_)
+			write_(rhs.write_)
 	{
 
-		if (rhs.op_ || !rhs.pending_.empty()) throw std::logic_error("rhs has pending operations");
+		auto l=rhs.control_->lock();
 
-		op_=std::move(rhs.op_);
-		pending_=std::move(rhs.pending_);
-		socket_=std::move(rhs.socket_);
-		using std::swap;
-		swap(control_,rhs.control_);
+		try {
+
+			op_=std::move(rhs.op_);
+			pending_=std::move(rhs.pending_);
+			socket_=std::move(rhs.socket_);
+			using std::swap;
+			swap(control_,rhs.control_);
+
+		} catch (...) {
+
+			//	We cannot allow the lock to be released
+			//	or there could be UB
+			std::terminate();
+
+		}
+
+		control_->move(*this);
 
 	}
-
 
 
 	connection::~connection () noexcept {
@@ -345,7 +370,7 @@ namespace asiopq {
 		swap(op_,op);
 		auto g=make_scope_exit([&] () noexcept {	swap(op_,op);	});
 
-		ios_.post(wrap([&] () {	begin();	}));
+		ios_.post(wrap([&] (auto & self) {	self.begin();	}));
 
 		g.release();
 
