@@ -19,7 +19,9 @@ namespace asiopq {
 
 
 	/**
-	 *
+	 *	Represents a libpq connection and allows
+	 *	\ref operation objects to be asynchronously
+	 *	run thereupon.
 	 */
 	class connection {
 
