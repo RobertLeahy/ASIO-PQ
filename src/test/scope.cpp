@@ -50,7 +50,7 @@ namespace {
 
 
 template <typename T>
-static void fail (	::scope_exit<T> e) noexcept {
+static void fail (asiopq::scope_exit<T> e) noexcept {
 	
 	try {
 		
