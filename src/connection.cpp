@@ -7,6 +7,7 @@
 #include <chrono>
 #include <exception>
 #include <memory>
+#include <stdexcept>
 #include <system_error>
 #include <utility>
 
@@ -284,7 +285,30 @@ namespace asiopq {
 	}
 
 
+	connection::connection (connection && rhs) noexcept
+		:	handle_(rhs.handle_),
+			ios_(rhs.ios_),
+			socket_(ios_),
+			read_(rhs.read_),
+			write_(rhs.write_),
+			timer_(rhs.ios_)
+	{
+
+		if (rhs.op_ || !rhs.pending_.empty()) throw std::logic_error("rhs has pending operations");
+
+		op_=std::move(rhs.op_);
+		pending_=std::move(rhs.pending_);
+		socket_=std::move(rhs.socket_);
+		using std::swap;
+		swap(control_,rhs.control_);
+
+	}
+
+
+
 	connection::~connection () noexcept {
+
+		if (!control_) return;
 
 		auto l=control_->lock();
 

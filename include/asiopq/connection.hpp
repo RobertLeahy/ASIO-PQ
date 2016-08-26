@@ -91,7 +91,6 @@ namespace asiopq {
 
 			connection () = delete;
 			connection (const connection &) = delete;
-			connection (connection &&) = delete;
 			connection & operator = (const connection &) = delete;
 			connection & operator = (connection &&) = delete;
 
@@ -112,6 +111,24 @@ namespace asiopq {
 			 *		operations.
 			 */
 			connection (native_handle_type handle, asio::io_service & ios);
+
+
+			/**
+			 *	Constructs a connection object by moving an existing
+			 *	connection object.
+			 *
+			 *	Attempting to move a connection object which has pending
+			 *	\ref operation objects associated with it will terminate
+			 *	the program.
+			 *
+			 *	After this constructor completes the only thing which may
+			 *	be safely done with \em rhs is to allow its lifetime
+			 *	to end.
+			 *
+			 *	\param [in] rhs
+			 *		The connection object to move from.
+			 */
+			connection (connection && rhs) noexcept;
 
 
 			/**
