@@ -8,6 +8,7 @@
 
 #include "asio.hpp"
 #include "operation.hpp"
+#include <cstdint>
 #include <deque>
 #include <memory>
 #include <mutex>
@@ -80,6 +81,9 @@ namespace asiopq {
 			std::shared_ptr<control> control_;
 			bool read_;
 			bool write_;
+			#ifdef _WIN32
+			std::uint32_t sid_;
+			#endif
 
 
 			void update_socket ();

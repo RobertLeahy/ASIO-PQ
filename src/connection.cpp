@@ -67,19 +67,10 @@ namespace asiopq {
 	void connection::update_socket () {
 
 		auto s=PQsocket(handle_);
-		if (s<0) {
+		if (s==-1) {
 
 			socket_.close();
 			return;
-
-		}
-
-		if (socket_.is_open()) {
-
-			#pragma GCC diagnostic push
-			#pragma GCC diagnostic ignored "-Wsign-compare"
-			if (socket_.native_handle()==s) return;
-			#pragma GCC diagnostic pop
 
 		}
 
@@ -96,6 +87,9 @@ namespace asiopq {
 				std::system_category()
 			)
 		);
+
+		if (socket_.is_open() && (sid_==info.dwCatalogEntryId)) return;
+
 		auto n=WSASocketW(
 			info.iAddressFamily,
 			info.iSocketType,
@@ -134,6 +128,12 @@ namespace asiopq {
 
 		socket_.assign(is_v6 ? asio::ip::tcp::v6() : asio::ip::tcp::v4(),s);
 		g.release();
+
+		#ifdef _WIN32
+
+		sid_=info.dwCatalogEntryId;
+
+		#endif
 
 	}
 
@@ -180,20 +180,22 @@ namespace asiopq {
 		do {
 
 			operation::operation_status status;
+			std::exception_ptr ex;
 			try {
 
 				status=op_->begin(handle_);
 
 			} catch (...) {
 
-				op_->complete(std::current_exception());
-				continue;
+				ex=std::current_exception();
 
 			}
 
-			if (status==operation::operation_status::done) {
+			update_socket();
 
-				op_->complete({});
+			if (ex || (status==operation::operation_status::done)) {
+
+				op_->complete(std::move(ex));
 				continue;
 
 			}
@@ -273,21 +275,22 @@ namespace asiopq {
 	void connection::perform (operation::socket_status status) {
 
 		operation::operation_status result;
+		std::exception_ptr ex;
 		try {
 
 			result=op_->perform(handle_,status);
 
 		} catch (...) {
 
-			op_->complete(std::current_exception());
-			next();
-			return;
+			ex=std::current_exception();
 
 		}
 
-		if (result==operation::operation_status::done) {
+		update_socket();
 
-			op_->complete({});
+		if (ex || (result==operation::operation_status::done)) {
+
+			op_->complete(std::move(ex));
 			next();
 			return;
 
