@@ -51,6 +51,7 @@ endif()
 configure_file(src/configure.hpp.in include/asiopq/configure.hpp)
 
 add_library(asiopq SHARED
+	src/connection.cpp
 	src/exception.cpp
 	src/operation.cpp
 )
