@@ -30,6 +30,7 @@ namespace asiopq {
 			native_handle_type handle_;
 			promise<void> promise_;
 			std::exception_ptr ex_;
+			timeout_type timeout_;
 
 
 			void init ();
@@ -51,16 +52,26 @@ namespace asiopq {
 			 *		See libpq documentation for PQconnectStartParams.
 			 *	\param [in] expand_dbname
 			 *		See libpq documentation for PQconnectStartParams.
+			 *	\param [in] timeout
+			 *		A \ref operation::timeout_type object giving the
+			 *		amount of time this operation is permitted to
+			 *		take at maximum.  Defaults to no timeout which
+			 *		means this operation may take infinitely long.
 			 */
-			connect (const char * const * keywords, const char * const * values, int expand_dbname);
+			connect (const char * const * keywords, const char * const * values, int expand_dbname, timeout_type timeout=timeout_type{});
 			/**
 			 *	Connects to a Postgres database by calling
 			 *	PQconnectStart.
 			 *
 			 *	\param [in] conninfo
 			 *		See libpq documentation for PQconnectStart.
+			 *	\param [in] timeout
+			 *		A \ref operation::timeout_type object giving the
+			 *		amount of time this operation is permitted to
+			 *		take at maximum.  Defaults to no timeout which
+			 *		means this operation may take infinitely long.
 			 */
-			explicit connect (const char * conninfo);
+			explicit connect (const char * conninfo, timeout_type timeout=timeout_type{});
 
 
 			/**

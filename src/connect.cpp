@@ -30,8 +30,9 @@ namespace asiopq {
 	}
 
 
-	connect::connect (const char * const * keywords, const char * const * values, int expand_dbname)
-		:	handle_(PQconnectStartParams(keywords,values,expand_dbname))
+	connect::connect (const char * const * keywords, const char * const * values, int expand_dbname, timeout_type timeout)
+		:	handle_(PQconnectStartParams(keywords,values,expand_dbname)),
+			timeout_(timeout)
 	{
 
 		init();
@@ -39,7 +40,7 @@ namespace asiopq {
 	}
 
 
-	connect::connect (const char * conninfo) : handle_(PQconnectStart(conninfo)) {
+	connect::connect (const char * conninfo, timeout_type timeout) : handle_(PQconnectStart(conninfo)), timeout_(timeout) {
 
 		init();
 
@@ -135,7 +136,7 @@ namespace asiopq {
 
 	connect::timeout_type connect::timeout () {
 
-		return timeout_type(in_place,1000);
+		return timeout_;
 
 	}
 
