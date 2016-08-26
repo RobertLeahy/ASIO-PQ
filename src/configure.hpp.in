@@ -4,3 +4,7 @@
 #if ${USE_BOOST_FUTURE}
 #define ASIOPQ_USE_BOOST_FUTURE
 #endif
+
+#if ${USE_BOOST_ASIO}
+#define ASIOPQ_USE_BOOST_ASIO
+#endif

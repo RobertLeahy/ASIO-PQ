@@ -44,6 +44,10 @@ if(NOT DEFINED USE_BOOST_FUTURE)
 	set(USE_BOOST_FUTURE 1)
 endif()
 
+if(NOT DEFINED USE_BOOST_ASIO)
+	set(USE_BOOST_ASIO 1)
+endif()
+
 configure_file(src/configure.hpp.in include/asiopq/configure.hpp)
 
 add_library(asiopq SHARED
@@ -53,6 +57,9 @@ add_library(asiopq SHARED
 target_link_libraries(asiopq pq boost_system)
 if(USE_BOOST_FUTURE)
 	target_link_libraries(asiopq boost_thread)
+endif()
+if(USE_BOOST_ASIO OR USE_BOOST_FUTURE)
+	target_link_libraries(asiopq boost_system)
 endif()
 if(WIN32)
 	target_link_libraries(asiopq ws2_32)
