@@ -96,7 +96,7 @@ namespace asiopq {
 			asiopq::connection connection (asio::io_service & ios);
 
 
-			virtual void complete (std::exception_ptr ex) override;
+			virtual void complete (std::exception_ptr) override;
 			virtual operation_status begin (native_handle_type) override;
 			virtual operation_status perform (native_handle_type, socket_status) override;
 			virtual timeout_type timeout () override;
