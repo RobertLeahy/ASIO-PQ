@@ -2,17 +2,13 @@
 #include <asiopq/connect.hpp>
 #include <asiopq/connection.hpp>
 #include <asiopq/exception.hpp>
+#include <asiopq/future.hpp>
 #include <asiopq/scope.hpp>
 #include <libpq-fe.h>
 #include <exception>
 #include <new>
 #include <stdexcept>
 #include <utility>
-
-
-#ifdef ASIOPQ_USE_BOOST_FUTURE
-#include <boost/exception_ptr.hpp>
-#endif
 
 
 namespace asiopq {
@@ -72,35 +68,19 @@ namespace asiopq {
 
 		if (ex_) {
 
-			std::exception_ptr ptr;
-			using std::swap;
-			swap(ptr,ex_);
-			ex=std::move(ptr);
-
-		} else if (!ex) {
-
-			promise_.set_value();
+			set_exception(promise_,std::move(ex_));
 			return;
 
 		}
 
-		#ifdef ASIOPQ_USE_BOOST_FUTURE
+		if (ex) {
 
-		try {
-
-			std::rethrow_exception(std::move(ex));
-
-		} catch (...) {
-
-			promise_.set_exception(boost::current_exception());
+			set_exception(promise_,std::move(ex));
+			return;
 
 		}
 
-		#else
-
-		promise_.set_exception(std::move(ex));
-
-		#endif
+		promise_.set_value();
 
 	}
 
