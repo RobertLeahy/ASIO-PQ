@@ -33,7 +33,7 @@ namespace asiopq {
 		std::ostringstream ss;
 		using ratio=decltype(timeout)::period;
 		static_assert((ratio::num==1) && (ratio::den==1000),"operation::timeout_type does not represent milliseconds");
-		ss << "Operation exceeded timeout of " << timeout.count() << "ms";
+		ss << "Operation exceeded timeout of " << timeout.count() << " ms";
 
 		return ss.str();
 
