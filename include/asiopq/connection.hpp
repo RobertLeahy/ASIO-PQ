@@ -155,6 +155,27 @@ namespace asiopq {
 			void add (operation_type op);
 
 
+			/**
+			 *	Retrieves the underlying asio::io_service.
+			 *
+			 *	\return
+			 *		A reference to an asio::io_service.
+			 */
+			asio::io_service & get_io_service () const noexcept;
+
+
+			/**
+			 *	Retrieves the managed libpq handle.
+			 *
+			 *	This object maintains ownership of the returned
+			 *	handle.
+			 *
+			 *	\return
+			 *		A libpq handle.
+			 */
+			native_handle_type native_handle () const noexcept;
+
+
 	};
 
 

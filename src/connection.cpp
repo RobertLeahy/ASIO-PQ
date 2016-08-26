@@ -391,4 +391,18 @@ namespace asiopq {
 	}
 
 
+	asio::io_service & connection::get_io_service () const noexcept {
+
+		return ios_;
+
+	}
+
+
+	connection::native_handle_type connection::native_handle () const noexcept {
+
+		return handle_;
+
+	}
+
+
 }
