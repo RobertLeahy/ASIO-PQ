@@ -206,12 +206,12 @@ namespace asiopq {
 				//	There's a read pending, don't need to dispatch
 				//	another
 				if (read_) break;
-				socket_.async_read_some(asio::null_buffers{},[&] (const auto &, auto) {
+				socket_.async_read_some(asio::null_buffers{},wrap([&] (const auto &, auto) {
 
 					this->read_=false;
 					this->perform(operation::socket_status::readable);
 
-				});
+				}));
 				read_=true;
 
 		}
@@ -226,12 +226,12 @@ namespace asiopq {
 				//	There's a write pending, don't need to dispatch
 				//	another
 				if (write_) break;
-				socket_.async_write_some(asio::null_buffers{},[&] (const auto &, auto) {
+				socket_.async_write_some(asio::null_buffers{},wrap([&] (const auto &, auto) {
 
 					this->write_=false;
 					this->perform(operation::socket_status::writable);
 
-				});
+				}));
 				write_=true;
 				break;
 
