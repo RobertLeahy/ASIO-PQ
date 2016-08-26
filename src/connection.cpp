@@ -86,17 +86,31 @@ namespace asiopq {
 		#ifdef _WIN32
 
 		WSAPROTOCOL_INFOW info;
-		s=WSADuplicateSocketW(
+		if (WSADuplicateSocketW(
 			s,
 			GetProcessId(GetCurrentProcess()),
 			&info
-		);
-		if (s==SOCKET_ERROR) throw std::system_error(
+		)==SOCKET_ERROR) throw std::system_error(
 			std::error_code(
 				GetLastError(),
 				std::system_category()
 			)
 		);
+		auto n=WSASocketW(
+			info.iAddressFamily,
+			info.iSocketType,
+			info.iProtocol,
+			&info,
+			0,
+			WSA_FLAG_OVERLAPPED
+		);
+		if (n==INVALID_SOCKET) throw std::system_error(
+			std::error_code(
+				GetLastError(),
+				std::system_category()
+			)
+		);
+		s=n;
 		auto g=make_scope_exit([&] () noexcept {	closesocket(s);	});
 		bool is_v6=info.iAddressFamily!=AF_INET;
 
