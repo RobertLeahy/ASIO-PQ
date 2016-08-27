@@ -66,21 +66,8 @@ namespace asiopq {
 
 	void connect::complete (std::exception_ptr ex) {
 
-		if (ex_) {
-
-			set_exception(promise_,std::move(ex_));
-			return;
-
-		}
-
-		if (ex) {
-
-			set_exception(promise_,std::move(ex));
-			return;
-
-		}
-
-		promise_.set_value();
+		if (ex) set_exception(promise_,std::move(ex));
+		else promise_.set_value();
 
 	}
 
@@ -106,8 +93,7 @@ namespace asiopq {
 			case PGRES_POLLING_OK:
 				return operation_status::done;
 			default:
-				ex_=std::make_exception_ptr(connection_error(handle));
-				return operation_status::done;
+				throw connection_error(handle);
 
 		}
 

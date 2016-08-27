@@ -29,7 +29,6 @@ namespace asiopq {
 
 			native_handle_type handle_;
 			promise<void> promise_;
-			std::exception_ptr ex_;
 			timeout_type timeout_;
 
 
