@@ -50,4 +50,7 @@ namespace asiopq {
 	}
 
 
+	result_error::result_error (native_result_type result) : error(get_error_message(PQresultErrorMessage(result))) {	}
+
+
 }

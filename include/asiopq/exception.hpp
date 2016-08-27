@@ -111,4 +111,33 @@ namespace asiopq {
 	};
 
 
+	/**
+	 *	Represents an exception thrown by a libpq result.
+	 */
+	class result_error : public error {
+
+
+		public:
+
+
+			/**
+			 *	The type of a libpq result as accepted by
+			 *	this class' constructor and PQresultErrorMessage.
+			 */
+			using native_result_type=const PGresult *;
+
+
+			/**
+			 *	Creates a result_error object by drawing error information
+			 *	from a libpq result.
+			 *
+			 *	\param [in] result
+			 *		The result from which to draw error information.
+			 */
+			explicit result_error (native_result_type result);
+
+
+	};
+
+
 }
