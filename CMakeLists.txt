@@ -55,6 +55,7 @@ add_library(asiopq SHARED
 	src/connection.cpp
 	src/exception.cpp
 	src/operation.cpp
+	src/query.cpp
 	src/reset.cpp
 )
 target_link_libraries(asiopq pq boost_system)
