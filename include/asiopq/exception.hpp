@@ -7,6 +7,7 @@
 
 
 #include "operation.hpp"
+#include <libpq-fe.h>
 #include <stdexcept>
 
 
@@ -39,9 +40,10 @@ namespace asiopq {
 
 
 			/**
-			 *	The type of a libpq connection.
+			 *	The type of a libpq connection as accepted by
+			 *	this class' constructor and PQerrorMessage.
 			 */
-			using native_handle_type=operation::native_handle_type;
+			using native_handle_type=const PGconn *;
 
 
 			/**
