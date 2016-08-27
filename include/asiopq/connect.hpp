@@ -10,6 +10,7 @@
 #include "connection.hpp"
 #include "future.hpp"
 #include "operation.hpp"
+#include <libpq-fe.h>
 #include <exception>
 #include <memory>
 
@@ -24,12 +25,23 @@ namespace asiopq {
 	class connect : public operation, public std::enable_shared_from_this<connect> {
 
 
+		public:
+
+
+			/**
+			 *	The type used by libpq to indicate the status
+			 *	of a connection.
+			 */
+			using native_status_type=ConnStatusType;
+
+
 		private:
 
 
 			native_handle_type handle_;
 			promise<void> promise_;
 			timeout_type timeout_;
+			native_status_type status_;
 
 
 			void init ();
@@ -109,6 +121,22 @@ namespace asiopq {
 			 *		A future.
 			 */
 			future<void> get_future ();
+
+
+			/**
+			 *	Invoked whenever the connection's status changes but
+			 *	this status change does not result in the connect operation
+			 *	completing.
+			 *
+			 *	For more information see the documentation for PQstatus
+			 *	and PQconnectPoll.
+			 *
+			 *	Default implementation does nothing.
+			 *
+			 *	\param [in] status
+			 *		The current connection status.
+			 */
+			virtual void status (native_status_type status);
 
 
 	};

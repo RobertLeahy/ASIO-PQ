@@ -19,7 +19,8 @@ namespace asiopq {
 		if (!handle_) throw std::bad_alloc{};
 		auto g=make_scope_exit([&] () noexcept {	PQfinish(handle_);	});
 
-		if (PQstatus(handle_)==CONNECTION_BAD) throw connection_error(handle_);
+		status_=PQstatus(handle_);
+		if (status_==CONNECTION_BAD) throw connection_error(handle_);
 
 		g.release();
 
@@ -84,18 +85,26 @@ namespace asiopq {
 
 	connect::operation_status connect::perform (native_handle_type handle, socket_status) {
 
+		connect::operation_status retr;
 		switch (PQconnectPoll(handle)) {
 
 			case PGRES_POLLING_WRITING:
-				return operation_status::write;
+				retr=operation_status::write;
+				break;
 			case PGRES_POLLING_READING:
-				return operation_status::read;
+				retr=operation_status::read;
+				break;
 			case PGRES_POLLING_OK:
 				return operation_status::done;
 			default:
 				throw connection_error(handle);
 
 		}
+
+		status_=PQstatus(handle);
+		status(status_);
+
+		return retr;
 
 	}
 
@@ -112,6 +121,9 @@ namespace asiopq {
 		return promise_.get_future();
 
 	}
+
+
+	void connect::status (native_status_type) {	}
 
 
 }
