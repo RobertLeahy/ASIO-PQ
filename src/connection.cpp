@@ -206,7 +206,7 @@ namespace asiopq {
 
 				auto duration=std::chrono::duration_cast<asio::steady_timer::duration>(*ms);
 				control_->timer.expires_from_now(duration);
-				control_->timer.async_wait(wrap([&,ms=*ms] (auto & self, const auto &) {
+				control_->timer.async_wait(wrap([ms=*ms] (auto & self, const auto &) {
 					
 					self.op_->complete(std::make_exception_ptr(timed_out(ms)));
 					self.next();
@@ -238,7 +238,7 @@ namespace asiopq {
 				//	There's a read pending, don't need to dispatch
 				//	another
 				if (read_) break;
-				socket_.async_read_some(asio::null_buffers{},wrap([&] (auto & self, const auto &, auto) {
+				socket_.async_read_some(asio::null_buffers{},wrap([] (auto & self, const auto &, auto) {
 
 					self.read_=false;
 					self.perform(operation::socket_status::readable);
@@ -258,7 +258,7 @@ namespace asiopq {
 				//	There's a write pending, don't need to dispatch
 				//	another
 				if (write_) break;
-				socket_.async_write_some(asio::null_buffers{},wrap([&] (auto & self, const auto &, auto) {
+				socket_.async_write_some(asio::null_buffers{},wrap([] (auto & self, const auto &, auto) {
 
 					self.write_=false;
 					self.perform(operation::socket_status::writable);
@@ -387,7 +387,7 @@ namespace asiopq {
 		swap(op_,op);
 		auto g=make_scope_exit([&] () noexcept {	swap(op_,op);	});
 
-		ios_.post(wrap([&] (auto & self) {	self.begin();	}));
+		ios_.post(wrap([] (auto & self) {	self.begin();	}));
 
 		g.release();
 
