@@ -1,0 +1,10 @@
+version: '{build}'
+os: Visual Studio 2015
+init:
+    -   ps: iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
+install:
+    -   ps: 'wget "https://github.com/chriskohlhoff/asio/archive/master.zip" -OutFile asio.zip'
+    -   cmd: '"C:/Program Files/7-zip-7z.exe" -y x asio.zip -r'
+    -   ps: 'cp -r asio-master/asio/include/asio* C:/mingw-w64/i686-5.3.0-posix-dwarf-rt_v4-rev0/mingw32/i686-w64-mingw32/include'
+on_finish:
+    -   ps: $blockRdp = $true; iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
