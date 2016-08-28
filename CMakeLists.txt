@@ -64,7 +64,7 @@ add_library(asiopq SHARED
 	src/query.cpp
 	src/reset.cpp
 )
-target_link_libraries(asiopq ${PostgreSQL_LIBRARIES} boost_system)
+target_link_libraries(asiopq ${PostgreSQL_LIBRARIES})
 if(USE_BOOST_FUTURE)
 	target_link_libraries(asiopq boost_thread)
 endif()
