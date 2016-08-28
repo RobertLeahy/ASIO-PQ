@@ -15,6 +15,12 @@ endfunction()
 #	Where our project's headers live
 include_directories(include)
 
+#	We need libpq
+set(PostgreSQL_ADDITIONAL_VERSIONS "9.5")
+find_package(PostgreSQL REQUIRED)
+include_directories(${PostgreSQL_INCLUDE_DIRS})
+link_directories(${PostgreSQL_LIBRARY_DIRS})
+
 #	General command line arguments to the compiler that should be present
 #	on all platforms
 add_compile_options(-std=c++1z)
@@ -58,7 +64,7 @@ add_library(asiopq SHARED
 	src/query.cpp
 	src/reset.cpp
 )
-target_link_libraries(asiopq pq boost_system)
+target_link_libraries(asiopq ${PostgreSQL_LIBRARIES} boost_system)
 if(USE_BOOST_FUTURE)
 	target_link_libraries(asiopq boost_thread)
 endif()
