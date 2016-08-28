@@ -76,7 +76,24 @@ if(WIN32)
 endif()
 
 if((DEFINED CMAKE_BUILD_TYPE AND CMAKE_BUILD_TYPE STREQUAL "Debug") OR (DEFINED BUILD_TESTS AND BUILD_TESTS))
+	if(NOT DEFINED PQ_HOST_ADDR)
+		set(PQ_HOST_ADDR 127.0.0.1)
+	endif()
+	if(NOT DEFINED PQ_PORT)
+		set(PQ_PORT 5432)
+	endif()
+	if(NOT DEFINED PQ_DATABASE_NAME)
+		set(PQ_DATABASE_NAME postgres)
+	endif()
+	if(NOT DEFINED PQ_USERNAME)
+		set(PQ_USERNAME postgres)
+	endif()
+	if(NOT DEFINED PQ_PASSWORD)
+		set(PQ_PASSWORD "")
+	endif()
+	configure_file(src/test/login.hpp.in src/test/login.hpp ESCAPE_QUOTES)
 	add_executable(tests
+		src/test/integration.cpp
 		src/test/main.cpp
 		src/test/scope.cpp
 	)

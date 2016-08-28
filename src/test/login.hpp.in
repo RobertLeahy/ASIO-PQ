@@ -1,0 +1,8 @@
+#pragma once
+
+
+#define ASIOPQ_HOST_ADDR "${PQ_HOST_ADDR}"
+#define ASIOPQ_PORT "${PQ_PORT}"
+#define ASIOPQ_DATABASE_NAME "${PQ_DATABASE_NAME}"
+#define ASIOPQ_USERNAME "${PQ_USERNAME}"
+#define ASIOPQ_PASSWORD "${PQ_PASSWORD}"

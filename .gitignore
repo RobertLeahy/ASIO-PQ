@@ -5,3 +5,4 @@ cmake_install.cmake
 bin
 doc
 include/asiopq/configure.hpp
+src/test/login.hpp
