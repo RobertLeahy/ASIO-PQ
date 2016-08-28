@@ -6,6 +6,8 @@ compiler:
     -   clang
     -   gcc
 sudo: required
+services:
+    -   postgresql
 matrix:
     exclude:
         -   os: linux
