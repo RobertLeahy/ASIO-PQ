@@ -51,7 +51,7 @@ namespace {
 
 			virtual void complete (std::exception_ptr ex) override {
 
-				if (ex) promise_.set_exception(std::move(ex));
+				if (ex) asiopq::set_exception(promise_,std::move(ex));
 
 			}
 
@@ -161,7 +161,7 @@ namespace {
 
 			virtual void complete (std::exception_ptr ex) override {
 
-				if (ex) promise_.set_exception(std::move(ex));
+				if (ex) asiopq::set_exception(promise_,std::move(ex));
 
 			}
 
