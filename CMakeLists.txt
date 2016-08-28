@@ -73,6 +73,12 @@ if(USE_BOOST_ASIO OR USE_BOOST_FUTURE)
 endif()
 if(WIN32)
 	target_link_libraries(asiopq ws2_32)
+else()
+	#	Using non-Boost ASIO on Linux seems to require
+	#	linking against libpthread
+	if(NOT USE_BOOST_ASIO)
+		target_link_libraries(asiopq pthread)
+	endif()
 endif()
 
 if((DEFINED CMAKE_BUILD_TYPE AND CMAKE_BUILD_TYPE STREQUAL "Debug") OR (DEFINED BUILD_TESTS AND BUILD_TESTS))
