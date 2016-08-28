@@ -126,6 +126,7 @@ namespace asiopq {
 
 		#endif
 
+		socket_.close();
 		socket_.assign(is_v6 ? asio::ip::tcp::v6() : asio::ip::tcp::v4(),s);
 		g.release();
 
