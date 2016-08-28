@@ -21,6 +21,7 @@ matrix:
                     packages:
                         -   libboost-all-dev
                         -   libpq-dev
+                        -   postgresql-server-dev-9.3
                         -   clang-3.8
                         -   libc++-dev
         -   os: linux
@@ -37,6 +38,7 @@ matrix:
                     packages:
                         -   libboost-all-dev
                         -   libpq-dev
+                        -   postgresql-server-dev-9.3
                         -   g++-5
         -   os: linux
             compiler: gcc
@@ -52,6 +54,7 @@ matrix:
                     packages:
                         -   libboost-all-dev
                         -   libpq-dev
+                        -   postgresql-server-dev-9.3
                         -   g++-6
         -   os: linux
             compiler: gcc
@@ -67,6 +70,7 @@ matrix:
                         -   llvm-toolchain-precise-3.8
                     packages:
                         -   libpq-dev
+                        -   postgresql-server-dev-9.3
                         -   clang-3.8
                         -   libc++-dev
         -   os: linux
@@ -82,6 +86,7 @@ matrix:
                         -   ubuntu-toolchain-r-test
                     packages:
                         -   libpq-dev
+                        -   postgresql-server-dev-9.3
                         -   g++-5
         -   os: linux
             compiler: gcc
@@ -96,6 +101,7 @@ matrix:
                         -   ubuntu-toolchain-r-test
                     packages:
                         -   libpq-dev
+                        -   postgresql-server-dev-9.3
                         -   g++-6
         -   os: linux
             compiler: gcc
@@ -123,5 +129,5 @@ script:
         else
             grep "define ASIO_VERSION" < /usr/local/include/asio/version.hpp;
         fi
-    -   cmake . -DCMAKE_BUILD_TYPE=Debug -DUSE_BOOST_FUTURE=${USE_BOOST_FUTURE} -DUSE_ADDRESS_SANITIZER=${USE_ADDRESS_SANITIZER} -DUSE_BOOST_ASIO=${USE_BOOST_ASIO}
+    -   cmake . -DCMAKE_BUILD_TYPE=Debug -DUSE_BOOST_FUTURE=${USE_BOOST_FUTURE} -DUSE_ADDRESS_SANITIZER=${USE_ADDRESS_SANITIZER} -DUSE_BOOST_ASIO=${USE_BOOST_ASIO} -DPostgreSQL_TYPE_INCLUDE_DIR=/usr/include/postgres/9.3/server
     -   make VERBOSE=1
