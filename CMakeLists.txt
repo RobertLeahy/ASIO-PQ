@@ -40,7 +40,7 @@ if(DEFINED CMAKE_BUILD_TYPE AND CMAKE_BUILD_TYPE STREQUAL "Debug")
 		#	library
 		add_compile_options(-Wno-c++98-compat)
 		#	These warnings are just noise
-		add_compile_options(-Wno-weak-vtables -Wno-padded)
+		add_compile_options(-Wno-weak-vtables -Wno-padded -Wno-switch-enum)
 	endif()
 else()
 	add_compile_options(-O2)
