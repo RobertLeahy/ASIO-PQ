@@ -15,6 +15,13 @@
 #include <type_traits>
 
 
+#ifdef _WIN32
+#include <Winsock2.h>
+#else
+#include <sys/socket.h>
+#endif
+
+
 namespace asiopq {
 
 
@@ -83,9 +90,7 @@ namespace asiopq {
 			std::shared_ptr<control> control_;
 			bool read_;
 			bool write_;
-			#ifdef _WIN32
-			std::uint32_t sid_;
-			#endif
+			struct sockaddr_storage local_;
 
 
 			void update_socket ();

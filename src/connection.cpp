@@ -5,6 +5,7 @@
 #include <asiopq/scope.hpp>
 #include <libpq-fe.h>
 #include <chrono>
+#include <cstring>
 #include <exception>
 #include <memory>
 #include <stdexcept>
@@ -64,21 +65,13 @@ namespace asiopq {
 	}
 
 
-	void connection::update_socket () {
-
-		auto s=PQsocket(handle_);
-		if (s==-1) {
-
-			socket_.close();
-			return;
-
-		}
+	static int dup (int socket) {
 
 		#ifdef _WIN32
 
 		WSAPROTOCOL_INFOW info;
 		if (WSADuplicateSocketW(
-			s,
+			socket,
 			GetProcessId(GetCurrentProcess()),
 			&info
 		)==SOCKET_ERROR) throw std::system_error(
@@ -87,8 +80,6 @@ namespace asiopq {
 				std::system_category()
 			)
 		);
-
-		if (socket_.is_open() && (sid_==info.dwCatalogEntryId)) return;
 
 		auto n=WSASocketW(
 			info.iAddressFamily,
@@ -104,37 +95,77 @@ namespace asiopq {
 				std::system_category()
 			)
 		);
-		s=n;
-		auto g=make_scope_exit([&] () noexcept {	closesocket(s);	});
-		bool is_v6=info.iAddressFamily!=AF_INET;
+
+		return n;
 
 		#else
 
-		struct sockaddr info;
-		socklen_t len=sizeof(info);
-		if (
-			(getsockname(s,&info,&len)!=0) ||
-			((s=dup(s))==-1)
-		) throw std::system_error(
+		auto n=::dup(socket);
+		if (n==-1) throw std::system_error(
 			std::error_code(
 				errno,
 				std::system_category()
 			)
 		);
-		auto g=make_scope_exit([&] () noexcept {	close(s);	});
-		bool is_v6=info.sa_family!=AF_INET;
+
+		return n;
 
 		#endif
+
+	}
+
+
+	void connection::update_socket () {
+
+		auto s=PQsocket(handle_);
+		if (s==-1) {
+
+			socket_.close();
+			return;
+
+		}
+
+		struct sockaddr_storage local;
+		std::memset(&local,0,sizeof(local));
+		#ifdef _WIN32
+		constexpr int error=SOCKET_ERROR;
+		int size;
+		#else
+		constexpr int error=-1;
+		socklen_t size;
+		#endif
+		size=sizeof(local);
+		if (getsockname(s,reinterpret_cast<struct sockaddr *>(&local),&size)==error) throw std::system_error(
+			std::error_code(
+				#ifdef _WIN32
+				GetLastError()
+				#else
+				errno
+				#endif
+				,std::system_category()
+			)
+		);
+
+		if (socket_.is_open()) {
+
+			if (std::memcmp(&local_,&local,sizeof(local))==0) return;
+
+		}
+
+		auto n=dup(s);
+		auto g=make_scope_exit([&] () noexcept {
+			#ifdef _WIN32
+			closesocket(n);
+			#else
+			close(n);
+			#endif
+		});
 
 		socket_.close();
-		socket_.assign(is_v6 ? asio::ip::tcp::v6() : asio::ip::tcp::v4(),s);
+		socket_.assign((local.ss_family==AF_INET) ? asio::ip::tcp::v4() : asio::ip::tcp::v6(),n);
 		g.release();
 
-		#ifdef _WIN32
-
-		sid_=info.dwCatalogEntryId;
-
-		#endif
+		std::memcpy(&local_,&local,sizeof(local));
 
 	}
 
