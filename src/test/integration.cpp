@@ -9,6 +9,7 @@
 #include "login.hpp"
 
 
+#include <asiopq/configure.hpp>
 #include <asiopq/scope.hpp>
 #include <libpq-fe.h>
 #include <chrono>
@@ -305,6 +306,107 @@ SCENARIO("ASIO PQ features may be used to connect to a PostgreSQL database, rese
 						}
 
 					}
+
+				}
+
+			}
+
+		}
+
+	}
+
+}
+
+SCENARIO("When an ASIO PQ connection fails enqueued operations all fail gracefully","[asiopq][integration][connect][connection]") {
+
+	GIVEN("An asiopq::connection object representing a connection attempt to a PostgreSQL server which will fail") {
+
+		asiopq::asio::io_service ios;
+		const char * keywords []={
+			"hostaddr",
+			"port",
+			"dbname",
+			"user",
+			"password",
+			nullptr
+		};
+		const char * values []={
+			ASIOPQ_BAD_HOST_ADDR,
+			ASIOPQ_BAD_PORT,
+			ASIOPQ_BAD_DATABASE_NAME,
+			ASIOPQ_BAD_USERNAME,
+			ASIOPQ_BAD_PASSWORD,
+			nullptr
+		};
+		std::chrono::milliseconds timeout(1000);
+		auto connect=std::make_shared<asiopq::connect>(keywords,values,0,timeout);
+		auto connection=connect->connection(ios);
+
+		WHEN("That connection attempt is run on an asiopq::connection") {
+
+			ios.run();
+
+			THEN("The connection attempt fails") {
+
+				auto f=connect->get_future();
+				//	Due to the fact boost::future refuses to accept
+				//	std::exception_ptr, and due to the fact
+				//	boost::current_exception doesn't transport exception
+				//	type information perfectly, we can't assert the
+				//	exception type when using boost::future because
+				//	it won't actually be that type
+				#ifdef ASIOPQ_USE_BOOST_FUTURE
+				CHECK_THROWS(f.get());
+				#else
+				CHECK_THROWS_AS(f.get(),asiopq::connection_error);
+				#endif
+
+			}
+
+		}
+
+		WHEN("Several operations are enqueued on the asiopq::connection") {
+
+			//	Same batch of operations as the success integration
+			//	test
+			auto create=std::make_shared<create_query>(timeout);
+			auto insert_1=std::make_shared<insert_query>(1,timeout);
+			auto insert_2=std::make_shared<insert_query>(2,timeout);
+			auto count=std::make_shared<count_query>(timeout);
+			auto min=std::make_shared<min_query>(timeout);
+			connection.add(create);
+			connection.add(insert_1);
+			connection.add(insert_2);
+			connection.add(count);
+			connection.add(min);
+
+			AND_WHEN("The asiopq::connection is run") {
+
+				ios.run();
+
+				THEN("All operations fail") {
+
+					auto co=connect->get_future();
+					auto cr=create->get_future();
+					auto i1=insert_1->get_future();
+					auto i2=insert_2->get_future();
+					auto ct=count->get_future();
+					auto mi=min->get_future();
+					#ifdef ASIOPQ_USE_BOOST_FUTURE
+					CHECK_THROWS(co.get());
+					CHECK_THROWS(cr.get());
+					CHECK_THROWS(i1.get());
+					CHECK_THROWS(i2.get());
+					CHECK_THROWS(ct.get());
+					CHECK_THROWS(mi.get());
+					#else
+					CHECK_THROWS_AS(co.get(),asiopq::connection_error);
+					CHECK_THROWS_AS(cr.get(),asiopq::connection_error);
+					CHECK_THROWS_AS(i1.get(),asiopq::connection_error);
+					CHECK_THROWS_AS(i2.get(),asiopq::connection_error);
+					CHECK_THROWS_AS(ct.get(),asiopq::connection_error);
+					CHECK_THROWS_AS(mi.get(),asiopq::connection_error);
+					#endif
 
 				}
 

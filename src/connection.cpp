@@ -189,11 +189,11 @@ namespace asiopq {
 
 	void connection::next () {
 
-		socket_.cancel();
-		control_->timer.cancel();
+		op_=operation_type{};
 		read_=false;
 		write_=false;
-		op_=operation_type{};
+		control_->timer.cancel();
+		if (socket_.is_open()) socket_.cancel();
 
 		if (pending_.empty()) return;
 
